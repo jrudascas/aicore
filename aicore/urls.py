@@ -18,13 +18,17 @@ from django.urls import path
 from django.contrib import admin
 from django.conf.urls import url, include
 from rest_framework import routers, serializers, viewsets
-from backend.views import UserViewSet
+from backend.views import UserViewSet, get_request
+from rest_framework_swagger.views import get_swagger_view
 
+schema_view = get_swagger_view(title='ImexHS AI CORE - API')
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('runprediction/', get_request),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls')),
+    url(r'^docs/', schema_view),
 ]

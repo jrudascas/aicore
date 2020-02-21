@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import *
 
 admin.site.register(Model)
-admin.site.register(ModelVersion)
-admin.site.register(Request)
-admin.site.register(RequestType)
-admin.site.register(RequestStatus)
+admin.site.register(ModelRequest)
+admin.site.register(ModelResponse)
+admin.site.register(ModelRequestType)
+admin.site.register(ModelRequestStatus)

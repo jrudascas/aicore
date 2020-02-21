@@ -1,5 +1,5 @@
-from models.ConcreteFactories import ChestXNetModelFactory
-from models.chestxnet.ChestXNetConstanteManager import PATH_WEIGHTS
+from ai_models.ConcreteFactories import ChestXNetModelFactory
+from ai_models.chestxnet.ChestXNetConstanteManager import PATH_WEIGHTS
 
 
 def test_factory(abstract_factory):
@@ -9,5 +9,3 @@ def test_factory(abstract_factory):
 
 factory = ChestXNetModelFactory()
 test_factory(factory)
-
-django-admin startproject aicore
