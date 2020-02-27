@@ -1,3 +1,7 @@
+import os
+import sys
+
+
 LABEL_BASELINE_PROBS = {
     'Atelectasis': 0.103,
     'Cardiomegaly': 0.025,
@@ -18,4 +22,4 @@ LABEL_BASELINE_PROBS = {
 MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
 
-PATH_WEIGHTS = "/home/jrudascas/PycharmProjects/AI_Core/models/chestxnet/pretrained/checkpoint"
+PATH_WEIGHTS = os.path.dirname(sys.modules['__main__'].__file__) + '/backend/ai_models/chestxnet/pretrained/checkpoint'

@@ -1,5 +1,6 @@
 from .chestxnet.ChestXNetModel import ChestXNetModel, OtherModel
 from .AbstractFactories import AbstractModelFactory
+from .chestxnet.ChestXNetConstanteManager import PATH_WEIGHTS
 
 
 class ChestXNetModelFactory(AbstractModelFactory):
@@ -8,7 +9,7 @@ class ChestXNetModelFactory(AbstractModelFactory):
         pass
 
     def create_model(self):
-        weights = '/home/jrudascas/PycharmProjects/aicore/backend/ai_models/chestxnet/pretrained/checkpoint'
+        weights = PATH_WEIGHTS
         return ChestXNetModel(weights)
 
 
