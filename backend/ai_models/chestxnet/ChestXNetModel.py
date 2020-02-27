@@ -6,6 +6,7 @@ from .ChestXNetConstanteManager import LABEL_BASELINE_PROBS, MEAN, STD
 from PIL import Image
 from collections import OrderedDict
 import numpy as np
+import wget
 
 
 class ChestXNetModel(BaseModel):
@@ -29,43 +30,35 @@ class ChestXNetModel(BaseModel):
         #Cambiar por un metodo fabrica
 
         images_list = []
-        if 'url' in metadata:
-            import wget
-            image_url = metadata['url']['image_url']
 
-            if isinstance(image_url, str):
+        for data in metadata:
+            if 'url' in data:
+                image_url = data['url']
                 local_image_filename = wget.download(image_url)
                 image = Image.open(local_image_filename)
                 image = image.convert('RGB')
-
-                images_list.append((image_url, image))
-            elif isinstance(image_url, list):
-                for url in image_url:
-                    local_image_filename = wget.download(url)
-                    image = Image.open(local_image_filename)
-                    image = image.convert('RGB')
-
-                    images_list.append((url, image))
-        elif 'bytestream' in metadata:
-            orderdict = OrderedDict(metadata['bytestream'])
-
-            for key, value in orderdict.items():
-                bytes_sequence = value['stream']
+            elif 'array' in data:
+                bytes_sequence = data['array']
                 ss = np.mean(np.array(bytes_sequence), axis=2)
                 image = Image.fromarray(ss)
                 image = image.convert('RGB')
 
-                images_list.append((key, image))
+            private_id = ''
+            if 'private_id' in data:
+                private_id = data['private_id']
 
-        prediction_list = []
+            images_list.append((private_id, image))
+
+        predictions_list = []
         for i, img in enumerate(images_list):
             image = self.data_transform(img[1]).unsqueeze(0)
 
-            pred = self.model(torch.autograd.Variable(image.cpu())).data.numpy()[0]
-            predx = ['%.2f' % elem for elem in list(pred)]
-            prediction_list.append({images_list[i][0]:dict(zip(list(LABEL_BASELINE_PROBS.keys()), predx))})
+            predictions = self.model(torch.autograd.Variable(image.cpu())).data.numpy()[0]
+            sum_predictions = np.sum(predictions)
+            predx = ['%.2f' % elem for elem in list(predictions)]
+            predictions_list.append({'private_id':img[0],'pathology_probability': 1 if sum_predictions > 1 else sum_predictions, 'prediction_details':dict(zip(list(LABEL_BASELINE_PROBS.keys()), predx))})
 
-        response = {'predicctions': prediction_list}
+        response = {'predictions':predictions_list}
 
         return response
 

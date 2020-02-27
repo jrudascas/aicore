@@ -1,34 +1,35 @@
-"""aicore URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
 from django.urls import path
 from django.contrib import admin
 from django.conf.urls import url, include
-from rest_framework import routers, serializers, viewsets
-from backend.views import UserViewSet, get_request
-from rest_framework_swagger.views import get_swagger_view
+from rest_framework import routers
+from backend.views import *
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
-schema_view = get_swagger_view(title='ImexHS AI CORE - API')
+schema_view = get_schema_view(
+   openapi.Info(
+      title="ImexHS - AI Core API",
+      default_version='v1',
+      description="This is the official documentation and technical manual to use the AI Core API from ImexHS",
+      terms_of_service="https://www.imexhs.com/aicore/",
+      contact=openapi.Contact(email="jorge.rudas@imexhs.com"),
+      license=openapi.License(name="Only for internal use"),
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
+
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
+router.register(r'images', ImageViewSet)
+router.register(r'request', ModelRequestViewSet)
+router.register(r'response', ModelResponseViewSet)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('runprediction/', get_request),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls')),
-    url(r'^docs/', schema_view),
+    url(r'^doc/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
