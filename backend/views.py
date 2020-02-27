@@ -22,6 +22,12 @@ class ImageViewSet(viewsets.ModelViewSet):
     serializer_class = ImageSerializer
 
 
+class ModelViewSet(viewsets.ModelViewSet):
+    queryset = Model.objects.all()
+    serializer_class = ModelSerializer
+    filter_fields = ('uuid', 'name')
+
+
 class ModelResponseViewSet(viewsets.ModelViewSet):
     queryset = ModelResponse.objects.all()
     serializer_class = ModelResponseSerializer
@@ -82,10 +88,14 @@ class ModelRequestViewSet(viewsets.ModelViewSet):
 
             model_response = {'request': model_request, 'response':prediction_response}
             ModelResponse.objects.create(**model_response)
+            model_request = update_model_status(model_request, REQUEST_STATUS_FINISHED_SUCCESSFULLY)
 
             return Response(data=create_response(
                 data=prediction_response, status='OK'), status=status.HTTP_200_OK)
 
         except Exception as e:
+
+            model_request = update_model_status(model_request, REQUEST_STATUS_FINISHED_WITH_ERRORS)
+
             return Response(data=create_response(data=None, status='BAD', comments=e.__str__()),
                             status=status.HTTP_400_BAD_REQUEST)

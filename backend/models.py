@@ -84,8 +84,8 @@ class ModelResponse(models.Model):
 
 class Image(models.Model):
     uuid = models.CharField(primary_key=True, max_length=ID_FIELD_LENGTH)
-    url = models.CharField(max_length=256, null=True)
-    array = models.CharField(max_length=20000, null=True)
+    url_path = models.CharField(max_length=256, null=True)
+    #array = models.CharField(max_length=2000, null=True)
     request = models.ForeignKey(ModelRequest, related_name='images', on_delete=models.CASCADE)
     private_id = models.CharField(max_length=20, null=True)
 

@@ -1,12 +1,12 @@
 from ..AbstractProducts import BaseModel
 import torch
 from torchvision import transforms
-import pandas as pd
 from .ChestXNetConstanteManager import LABEL_BASELINE_PROBS, MEAN, STD
 from PIL import Image
-from collections import OrderedDict
 import numpy as np
 import wget
+import validators
+from os import path
 
 
 class ChestXNetModel(BaseModel):
@@ -32,16 +32,15 @@ class ChestXNetModel(BaseModel):
         images_list = []
 
         for data in metadata:
-            if 'url' in data:
-                image_url = data['url']
-                local_image_filename = wget.download(image_url)
-                image = Image.open(local_image_filename)
-                image = image.convert('RGB')
-            elif 'array' in data:
-                bytes_sequence = data['array']
-                ss = np.mean(np.array(bytes_sequence), axis=2)
-                image = Image.fromarray(ss)
-                image = image.convert('RGB')
+            if 'url_path' in data:
+                if validators.url(data['url_path']):
+                    local_image_filename = wget.download(data['url_path'])
+                    image = Image.open(local_image_filename)
+                elif path.exists(data['url_path']):
+                    image = Image.open(data['url_path'])
+                else:
+                    raise Exception('url_path wrong')
+            image = image.convert('RGB')
 
             private_id = ''
             if 'private_id' in data:

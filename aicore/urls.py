@@ -21,8 +21,9 @@ schema_view = get_schema_view(
 )
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'images', ImageViewSet)
+router.register(r'user', UserViewSet)
+router.register(r'image', ImageViewSet)
+router.register(r'model', ModelViewSet)
 router.register(r'request', ModelRequestViewSet)
 router.register(r'response', ModelResponseViewSet)
 
