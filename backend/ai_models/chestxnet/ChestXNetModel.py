@@ -7,6 +7,7 @@ import numpy as np
 import wget
 import validators
 from os import path
+from .ChestXNetUtils import generate_visual_result
 
 
 class ChestXNetModel(BaseModel):
@@ -45,19 +46,30 @@ class ChestXNetModel(BaseModel):
             private_id = ''
             if 'private_id' in data:
                 private_id = data['private_id']
-
-            images_list.append((private_id, image))
+            image_name = data['url_path'].split('/')[-1]
+            images_list.append((private_id, image, image_name))
 
         predictions_list = []
         for i, img in enumerate(images_list):
-            image = self.data_transform(img[1]).unsqueeze(0)
+            image_private_id = img[0]
+            image_original = img[1]
+            file_name = img[2]
+            image_tranformed = self.data_transform(image_original).unsqueeze(0)
 
-            predictions = self.model(torch.autograd.Variable(image.cpu())).data.numpy()[0]
+            predictions = self.model(torch.autograd.Variable(image_tranformed.cpu())).data.numpy()[0]
             sum_predictions = np.sum(predictions)
             predx = ['%.2f' % elem for elem in list(predictions)]
-            predictions_list.append({'private_id':img[0],'pathology_probability': 1 if sum_predictions > 1 else sum_predictions, 'prediction_details':dict(zip(list(LABEL_BASELINE_PROBS.keys()), predx))})
+
+            output_path = generate_visual_result(predictions, self.model, image_tranformed, image_original, file_name)
+
+            predictions_list.append({'private_id':image_private_id,
+                                     'pathology_probability': 1 if sum_predictions > 1 else str(round(sum_predictions, 2)),
+                                     'visual_prediction':output_path,
+                                     'prediction_details':dict(zip(list(LABEL_BASELINE_PROBS.keys()), predx))})
+
 
         response = {'predictions':predictions_list}
+
 
         return response
 

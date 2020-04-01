@@ -82,9 +82,10 @@ class ModelRequestViewSet(viewsets.ModelViewSet):
             abstract_factory = model_factory_name()
 
             ai_model = abstract_factory.create_model()
-            prediction_response = ai_model.run_prediction(images_data)
 
             model_request = update_model_status(model_request, REQUEST_STATUS_PROCESSING)
+
+            prediction_response = ai_model.run_prediction(images_data)
 
             model_response = {'request': model_request, 'response':prediction_response}
             ModelResponse.objects.create(**model_response)
