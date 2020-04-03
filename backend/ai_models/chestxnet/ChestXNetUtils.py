@@ -68,7 +68,7 @@ def generate_visual_result(predictions, model, image_tranformed, image_original,
 
     original_copy[np.where(original_color_mean == 0)] = 0
 
-    text = 'AI Diagnosis: {} -- Probability = {}%'
+    text = 'Stella AI Report: {} -- Probability = {}%'
     if sum_predictions < 0.3:
         img_output = np.array(image_original)
         text = text.format('NORMAL', round((1 - sum_predictions) * 100, 2))
@@ -77,8 +77,8 @@ def generate_visual_result(predictions, model, image_tranformed, image_original,
         text = text.format(list(LABEL_BASELINE_PROBS.items())[label_index][0].upper(),
                            round(predictions[label_index] * 100), 2)
 
-    cv2.putText(img_output, text=text, org=(5, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.8 * (img_output.shape[0] / 1024), color=(0, 0, 255), thickness=1)
+    cv2.putText(img_output, text=text, org=(img_output.shape[0] - 30, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1 * (img_output.shape[0] / 1024), color=(0, 0, 255), thickness=1.5)
 
     output_path = PATH_SAVE_VISUAL_RESPONSE + file_name.split('.')[0] + '_ai_diagnosis' + '.' + file_name.split('.')[1]
 
