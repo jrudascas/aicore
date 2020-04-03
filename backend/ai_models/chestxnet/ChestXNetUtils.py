@@ -77,8 +77,8 @@ def generate_visual_result(predictions, model, image_tranformed, image_original,
         text = text.format(list(LABEL_BASELINE_PROBS.items())[label_index][0].upper(),
                            round(predictions[label_index] * 100), 2)
 
-    cv2.putText(img_output, text=text, org=(img_output.shape[0] - 30, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1 * (img_output.shape[0] / 1024), color=(0, 0, 255), thickness=1.5)
+    cv2.putText(img_output, text=text, org=(5, img_output.shape[0] - 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1 * (img_output.shape[0] / 1024), color=(0, 0, 255), thickness=2)
 
     output_path = PATH_SAVE_VISUAL_RESPONSE + file_name.split('.')[0] + '_ai_diagnosis' + '.' + file_name.split('.')[1]
 
