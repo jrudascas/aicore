@@ -1,9 +1,7 @@
-from ..models import ModelRequestType, ModelRequestStatus
 from ..utils.utils import find_model
 from ..exceptions.exceptions_generator import ModelNotFoundException
 from os import path
 from ..models import *
-import sqlite3
 
 REQUEST_STATUS_RECEIVED = 'RECEIVED'
 REQUEST_STATUS_PROCESSING = 'PROCESSING'
@@ -27,6 +25,13 @@ if path.exists('db.sqlite3'):
         except ModelNotFoundException:
             data = {'name': 'ChestXNetv1.0',
                     'model_factory_name': 'ChestXNetModelFactory'}
+            Model.objects.create(**data)
+
+        try:
+            find_model(Model, 'name', 'COVID19v1.0')
+        except ModelNotFoundException:
+            data = {'name': 'COVID19v1.0',
+                    'model_factory_name': 'Covid19ModelFactory'}
             Model.objects.create(**data)
 
         for REQUEST_STATUS in REQUEST_STATUS_LIST:
