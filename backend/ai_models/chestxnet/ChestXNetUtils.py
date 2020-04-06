@@ -83,5 +83,5 @@ def generate_visual_result(predictions, model, image_tranformed, image_original,
     output_path = PATH_SAVE_VISUAL_RESPONSE + file_name.split('.')[0] + '_ai_diagnosis' + '.' + file_name.split('.')[1]
 
     cv2.imwrite(output_path, img_output)
-
+    print(output_path)
     return output_path

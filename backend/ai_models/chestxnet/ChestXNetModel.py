@@ -78,17 +78,3 @@ class ChestXNetModel(BaseModel):
 
     def run_training(self):
         pass
-
-
-class OtherModel(BaseModel):
-    def __init__(self, weights):
-        super().__init__(weights)
-
-    def run_prediction(self):
-        return self.__class__.__name__ + " run_prediction"
-
-    def run_evaluation(self):
-        pass
-
-    def run_training(self):
-        pass

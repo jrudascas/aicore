@@ -1,5 +1,5 @@
 import os
-import sys
+from os.path import join
 import collections
 
 
@@ -25,4 +25,4 @@ MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
 
 PATH_SAVE_VISUAL_RESPONSE = '/tmp/'
-PATH_WEIGHTS = os.path.abspath(os.curdir) + '/backend/ai_models/chestxnet/pretrained/checkpoint'
+CHESTXNET_PATH_WEIGHTS = join(os.path.dirname(os.path.realpath(__file__)), 'pretrained/checkpoint')
