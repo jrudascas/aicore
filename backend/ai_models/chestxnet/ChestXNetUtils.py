@@ -1,7 +1,16 @@
 import cv2
 import torch
 import numpy as np
-from .ChestXNetConstanteManager import LABEL_BASELINE_PROBS, PATH_SAVE_VISUAL_RESPONSE
+from .ChestXNetConstanteManager import PATH_SAVE_VISUAL_RESPONSE
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib
+import pandas as pd
+import math
+matplotlib.use('Agg')
+
+plt.style.use('dark_background')
+plt.rc_context({'ytick.color': 'red'})
 
 
 class densenet_last_layer(torch.nn.Module):
@@ -16,10 +25,12 @@ class densenet_last_layer(torch.nn.Module):
         x = torch.nn.functional.relu(x, inplace=True)
         return x
 
+
 def generate_visual_result(predictions, model, image_tranformed, image_original, file_name):
-    sum_predictions = np.sum(predictions)
+    probabilities = [float(item) for item in list(predictions.values())]
+    sum_predictions = np.sum(probabilities)
     # instantiate cam model and get output
-    label_index = np.argmax(predictions)
+    label_index = np.argmax(probabilities)
 
     model_cam = densenet_last_layer(model)
     image_tranformed = torch.autograd.Variable(image_tranformed)
@@ -30,29 +41,12 @@ def generate_visual_result(predictions, model, image_tranformed, image_original,
     weights = model.state_dict()['classifier.0.weight']
     weights = weights.cpu().numpy()
 
-    bias = model.state_dict()['classifier.0.bias']
-    bias = bias.cpu().numpy()
-
     cam = np.zeros((7, 7))
-
 
     for i, w in enumerate(weights[label_index]):
         cam += w * y[i, :, :]
 
     cam /= np.max(cam)
-
-    #for i in range(0, 7):
-    #    for j in range(0, 7):
-    #        for k in range(0, 1024):
-    #            cam[i, j] += y[k, i, j] * weights[label_index, k]
-    #cam += bias[label_index]
-
-    #cam = 1 / (1 + np.exp(-cam))
-
-    #cam = cam / list(LABEL_BASELINE_PROBS.items())[label_index][1]
-
-    # take log
-    #cam = np.log(cam)
 
     original = np.array(image_original)
     cam = cv2.resize(cam, original.shape[:2])
@@ -68,20 +62,118 @@ def generate_visual_result(predictions, model, image_tranformed, image_original,
 
     original_copy[np.where(original_color_mean == 0)] = 0
 
-    text = 'Stella AI Report: {} -- Probability = {}%'
-    if sum_predictions < 0.3:
-        img_output = np.array(image_original)
-        text = text.format('NORMAL', round((1 - sum_predictions) * 100, 2))
-    else:
-        img_output = heatmap * 0.4 + original + original_copy * 0.5
-        text = text.format(list(LABEL_BASELINE_PROBS.items())[label_index][0].upper(),
-                           round(predictions[label_index] * 100), 2)
-
-    cv2.putText(img_output, text=text, org=(5, img_output.shape[0] - 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1 * (img_output.shape[0] / 1024), color=(0, 0, 255), thickness=2)
+    img_output = np.array(image_original) if sum_predictions < 0.3 else heatmap * 0.4 + original + original_copy * 0.5
 
     output_path = PATH_SAVE_VISUAL_RESPONSE + file_name.split('.')[0] + '_ai_diagnosis' + '.' + file_name.split('.')[1]
 
-    cv2.imwrite(output_path, img_output)
+    mark_paths = generate_mark(predictions)
+
+    merge_image_mark(img_output, mark_paths, output_path)
+
     print(output_path)
+    return output_path
+
+
+def generate_mark(predictions):
+    output_path_normality = PATH_SAVE_VISUAL_RESPONSE + "/chestxnet_normality.png"
+    output_path_pathology = PATH_SAVE_VISUAL_RESPONSE + "/chestxnet_pathology.png"
+
+    sum_predictions = np.sum([float(item) for item in list(predictions.values())])
+
+    sum_predictions = 0.98 if sum_predictions >= 1 else sum_predictions
+
+    f, ax = plt.subplots(figsize=(24, 0.6))
+    plt.yticks(fontsize=30)
+
+    df = pd.DataFrame.from_dict(
+        {'Condition': ['Normality'], 'Probability': [1 - sum_predictions], 'Max': [1]}).sort_values(
+        "Probability", ascending=False)
+    sns.set_color_codes("pastel")
+    sns.barplot(x="Max", y="Condition", data=df, color="r")
+    sns.set_color_codes("dark")
+    g = sns.barplot(x="Probability", y="Condition", data=df, color="r")
+
+    for index, iter in enumerate(df.iterrows()):
+        g.text(iter[1].Probability + 0.03, index + 0.20, str(round(iter[1].Probability * 100, 1)) + '%', color='red',
+               ha="center", fontsize=22)
+
+    ax.set(xlim=(0, 1))
+    ax.set_xticks([])
+    ax.xaxis.set_label_text("")
+    ax.yaxis.set_label_text("")
+
+    sns.despine(left=True, bottom=True)
+    f.savefig(output_path_normality, dpi=400)
+    plt.close(f)
+
+    f2, ax2 = plt.subplots(figsize=(24, 2))
+    plt.yticks(fontsize=30)
+    df = pd.DataFrame.from_dict({'Pathology': list(predictions.keys()), 'Probability': [float(item) for item in list(predictions.values())],
+                                 'Max': [1] * len(list(predictions.values()))}).sort_values("Probability",
+                                                                                            ascending=False)
+
+    df = df[:3]
+
+    sns.set_color_codes("pastel")
+    sns.barplot(x="Max", y="Pathology", data=df, color="r")
+    sns.set_color_codes("dark")
+    g = sns.barplot(x="Probability", y="Pathology", data=df, color="r")
+
+    for index, iter in enumerate(df.iterrows()):
+        g.text(iter[1].Probability + 0.03, index + 0.19, str(round(iter[1].Probability * 100, 1)) + '%',
+               color='red',
+               ha="center", fontsize=22)
+
+    ax2.set(xlim=(0, 1))
+    ax2.set_xticks([])
+    ax2.xaxis.set_label_text("")
+    ax2.yaxis.set_label_text("")
+    sns.despine(left=True, bottom=True)
+    f2.savefig(output_path_pathology, dpi=400)
+    plt.close(f2)
+
+    return output_path_normality, output_path_pathology
+
+
+def merge_image_mark(image, mark_path, output_path):
+    oH, oW = image.shape[:2]
+    ovr = np.zeros((oH, oW, 3), dtype="uint8")
+    image = np.dstack([image, np.ones((oH, oW), dtype="uint8") * 255])
+
+    lgo_img = cv2.imread(mark_path[0], cv2.IMREAD_UNCHANGED)
+
+    scl = math.floor((oW/lgo_img.shape[1])*100)
+    w = int(lgo_img.shape[1] * scl / 100)
+    h = int(lgo_img.shape[0] * scl / 100)
+    dim = (w, h)
+
+    lgo = cv2.resize(lgo_img, dim)
+    lH, lW = lgo.shape[:2]
+
+    lgo_img2 = cv2.imread(mark_path[1], cv2.IMREAD_UNCHANGED)
+
+    w2 = int(lgo_img2.shape[1] * scl / 100)
+    h2 = int(lgo_img2.shape[0] * scl / 100)
+    dim2 = (w2, h2)
+
+    lgo2 = cv2.resize(lgo_img2, dim2)
+    lH2, lW2 = lgo2.shape[:2]
+
+    ovr[oH - lH - 110:oH - 110, 15:lW + 15] = lgo[:, :, :3]
+    ovr[oH - lH2 - 30:oH - 30, 15:lW2 + 15] = lgo2[:, :, :3]
+
+    original_color_mean = np.mean(ovr, axis=2)
+
+    final = image.copy()[:, :, :3]
+    final[np.where(original_color_mean > 0)] = 0
+    final = final + ovr
+
+    cv2.putText(final, text='Stella AI Report', org=(round(lW / 2.7), final.shape[0] - 10),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1 * (final.shape[0] / 1024), color=(0, 0, 255), thickness=2)
+
+    cv2.imwrite(output_path, final)
+
+    cv2.destroyAllWindows()
+
     return output_path

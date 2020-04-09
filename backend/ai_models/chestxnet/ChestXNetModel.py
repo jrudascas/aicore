@@ -8,6 +8,7 @@ import wget
 import validators
 from os import path
 from .ChestXNetUtils import generate_visual_result
+import collections
 
 
 class ChestXNetModel(BaseModel):
@@ -60,10 +61,11 @@ class ChestXNetModel(BaseModel):
             sum_predictions = np.sum(predictions)
             predx = ['%.2f' % elem for elem in list(predictions)]
 
-            output_path = generate_visual_result(predictions, self.model, image_tranformed, image_original, file_name)
+            ordered_prediction = collections.OrderedDict(zip(list(LABEL_BASELINE_PROBS.keys()), predx))
+            output_path = generate_visual_result(ordered_prediction, self.model, image_tranformed, image_original, file_name)
 
             predictions_list.append({'private_id':image_private_id,
-                                     'pathology_probability': 1 if sum_predictions > 1 else str(round(sum_predictions, 2)),
+                                     'pathology_probability': 0.98 if sum_predictions >= 1 else str(round(sum_predictions, 2)),
                                      'visual_prediction':output_path,
                                      'prediction_details':dict(zip(list(LABEL_BASELINE_PROBS.keys()), predx))})
 

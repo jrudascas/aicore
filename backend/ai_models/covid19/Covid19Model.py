@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 import cv2
 import os
+import collections
 
 
 class Covid19Model(BaseModel):
@@ -14,7 +15,7 @@ class Covid19Model(BaseModel):
     def __init__(self, weights=None, model_metadata=None):
         super().__init__(weights, model_metadata)
 
-        self.inv_mapping = {0: 'NORMAL', 1: 'PNEUMONIA', 2: 'COVID-19'}
+        self.inv_mapping = collections.OrderedDict({0: 'Normal', 1: 'Pneumonia', 2: 'COVID-19'})
 
         self.sess = tf.Session()
         tf.get_default_graph()
@@ -55,7 +56,7 @@ class Covid19Model(BaseModel):
             pred = self.sess.run(self.pred_tensor,
                                  feed_dict={self.image_tensor: np.expand_dims(image_tranformed, axis=0)})
 
-            output_visual_result = generate_visual_result(prediction =(self.inv_mapping[pred.argmax(axis=1)[0]], np.max(pred)), original_image = image_original, file_name = file_name)
+            output_visual_result = generate_visual_result(prediction =dict(zip(list(self.inv_mapping.values()), pred.squeeze().tolist())), original_image = image_original, file_name = file_name)
             predictions_list.append({'private_id': image_private_id,
                                      'probability': str(round(np.max(pred), 2)),
                                      'diagnosis': self.inv_mapping[pred.argmax(axis=1)[0]],
