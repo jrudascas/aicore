@@ -24,3 +24,15 @@ class Covid19ModelFactory(AbstractModelFactory):
         weights = COVID19_PATH_WEIGHTS
         metadata = COVID19_PATH_MODEL_METADATA
         return Covid19Model(weights, metadata)
+
+
+class Covid19CTModelFactory(AbstractModelFactory):
+
+    def __init__(self):
+        pass
+
+    def create_model(self):
+        from .covid19ct.Covid19CTConstanteManager import COVID19_CT_PATH_WEIGHTS
+        from .covid19ct.Covid19CTModel import Covid19CTModel
+        weights = COVID19_CT_PATH_WEIGHTS
+        return Covid19CTModel(weights)

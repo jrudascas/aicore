@@ -34,6 +34,13 @@ if path.exists('db.sqlite3'):
                     'model_factory_name': 'Covid19ModelFactory'}
             Model.objects.create(**data)
 
+        try:
+            find_model(Model, 'name', 'COVID19CTv1.0')
+        except ModelNotFoundException:
+            data = {'name': 'COVID19CTv1.0',
+                    'model_factory_name': 'Covid19CTModelFactory'}
+            Model.objects.create(**data)
+
         for REQUEST_STATUS in REQUEST_STATUS_LIST:
             try:
                 find_model(ModelRequestStatus, 'name', REQUEST_STATUS)
