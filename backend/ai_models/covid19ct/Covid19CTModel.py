@@ -18,7 +18,7 @@ class Covid19CTModel(BaseModel):
         self.model = models.densenet169(pretrained=True).cpu()
 
         # Se cargan los pre entrenados
-        pretrained_net = torch.load(weights)
+        pretrained_net = torch.load(weights, map_location='cpu')
         self.model.load_state_dict(pretrained_net)
         self.model.eval()
         self.gradcam = GradCAM.from_config(model_type='densenet', arch=self.model, layer_name='features_norm5')
