@@ -43,8 +43,8 @@ def generate_visual_result(gradcam, original_image, transformed_image, predictio
     np_heatmap[..., 1] = heatmap[1, ...]
     np_heatmap[..., 2] = heatmap[2, ...]
 
-    #Image.fromarray(np.uint8(np_heatmap*255)).convert("RGBA").show()
-    #Image.fromarray(np.uint8(original_image)).convert("RGBA").show()
+    # Image.fromarray(np.uint8(np_heatmap*255)).convert("RGBA").show()
+    # Image.fromarray(np.uint8(original_image)).convert("RGBA").show()
 
     np_original_image = np.array(original_image)
 
@@ -52,8 +52,6 @@ def generate_visual_result(gradcam, original_image, transformed_image, predictio
 
     np_heatmap_resized = cv2.resize(np_heatmap, np_original_image.shape[:2])
     np_heatmap_resized = np.uint8(255 * np_heatmap_resized)
-
-
 
     original_copy = np_original_image.copy()
 
@@ -63,7 +61,7 @@ def generate_visual_result(gradcam, original_image, transformed_image, predictio
     original_copy[np.where(np_mask_resized == 0)] = 0
     np_original_image[np.where(np_mask_resized != 0)] = 0
 
-    #visual_response = np_heatmap_resized * 0.4 + np_original_image + original_copy * 0.5
+    # visual_response = np_heatmap_resized * 0.4 + np_original_image + original_copy * 0.5
     visual_response = np.array(original_image)
     h, w, _ = visual_response.shape
 
@@ -92,9 +90,12 @@ def generate_visual_result(gradcam, original_image, transformed_image, predictio
     color_text = (92, 6, 18)
     textsize_covid = cv2.getTextSize(text, font, scale, thickness)[0]
 
+    x_initial_covid_text = round(w * 0.05)
+    y_initial_covid_text = round(h - h * 0.1)
+
     cv2.putText(img=visual_response,
                 text=text,
-                org=(round(w * 0.05), round(h - h * 0.1)),
+                org=(x_initial_covid_text, y_initial_covid_text),
                 fontFace=font,
                 fontScale=scale,  # This one scale the image proportionaly to its size (512 is the reference)
                 color=color_text,  # Red color
@@ -102,16 +103,25 @@ def generate_visual_result(gradcam, original_image, transformed_image, predictio
 
     rectangle_height = h * 0.02
 
+    x_initial_pink_rectangle = round(x_initial_covid_text + w * 0.02 + textsize_covid[0])  # x_initial_covid_text + 2% of image width + text width
+    x_final_pink_rectangle = round(w - w * 0.05)  # Image width - 5% of Image width
+
+    y_initial_pink_rectangle = y_initial_covid_text
+    y_final_pink_rectangle = round(y_initial_covid_text - rectangle_height)
+
     cv2.rectangle(img=visual_response,
-                  #pt1=(round(w * 0.2), round(h - h * 0.1)),
-                  pt1=(round(w * 0.07 + textsize_covid[0]), round(h - h * 0.1)),
-                  pt2=(round(w - w * 0.05), round(h - h * 0.1 - rectangle_height)),
+                  pt1=(x_initial_pink_rectangle, y_initial_pink_rectangle),
+                  pt2=(x_final_pink_rectangle, y_final_pink_rectangle),
                   color=(237, 192, 198),
                   thickness=cv2.FILLED)
 
+    x_initial_red_rectangle = x_initial_pink_rectangle
+    x_final_red_rectangle = round(
+        x_initial_pink_rectangle + (x_final_pink_rectangle - x_initial_pink_rectangle) * prediction)
+
     cv2.rectangle(img=visual_response,
-                  pt1=(round(w * 0.07 + textsize_covid[0]), round(h - h * 0.1)),
-                  pt2=(round((w * 0.07 + textsize_covid[0]) + (w - w * 0.05) * prediction), round(h - h * 0.1 - rectangle_height)),
+                  pt1=(x_initial_red_rectangle, y_initial_pink_rectangle),
+                  pt2=(x_final_red_rectangle, y_final_pink_rectangle),
                   color=(92, 6, 18),
                   thickness=cv2.FILLED)
 
@@ -124,13 +134,15 @@ def generate_visual_result(gradcam, original_image, transformed_image, predictio
 
     cv2.putText(img=visual_response,
                 text=text,
-                org=(round((w * 0.07 + textsize_covid[0]) + (w - w * 0.05) * prediction + w*0.01), round(h - h * 0.1 - (rectangle_height - textsize_porcentage[1])/2)),
+                org=(round(x_final_red_rectangle + w * 0.01),
+                     round(h - h * 0.1 - (rectangle_height - textsize_porcentage[1]) / 2)),
                 fontFace=font,
-                fontScale=scale,  # This one is the scale of the image. It is proportionaly to its size (512 is the reference)
+                fontScale=scale,
+                # This one is the scale of the image. It is proportionaly to its size (512 is the reference)
                 color=color_text,  # Red color
                 thickness=thickness)
 
-    #Image.fromarray(np.uint8(visual_response)).convert("RGBA").show()
+    # Image.fromarray(np.uint8(visual_response)).convert("RGBA").show()
 
     cv2.imwrite(output_filename_visual_response, cv2.cvtColor(visual_response, cv2.COLOR_RGB2BGR))
 
