@@ -66,27 +66,27 @@ def generate_visual_result(gradcam, original_image, transformed_image, predictio
     h, w, _ = visual_response.shape
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    text = 'Stella AI Report'
     scale = 1 * (h / 512)
-    thickness = 2
-    color_text = (92, 6, 18)
-    textsize = cv2.getTextSize(text, font, scale, thickness)[0]
+    # text = 'Stella AI Report'
+    #thickness = 2
+    #color_text = (92, 6, 18)
+    #textsize = cv2.getTextSize(text, font, scale, thickness)[0]
 
     # Get coords based on boundary
-    textX = int((w - textsize[0]) / 2)  # Coord to put the image centered
-    textY = int(h - h * 0.03)  # Over 3% of the image height
+    #textX = int((w - textsize[0]) / 2)  # Coord to put the image centered
+    #textY = int(h - h * 0.03)  # Over 3% of the image height
 
-    cv2.putText(img=visual_response,
-                text=text,
-                org=(textX, textY),
-                fontFace=font,
-                fontScale=scale,  # This one scale the image proportionaly to its size (512 is the reference)
-                color=color_text,  # Red color
-                thickness=thickness)
+    #cv2.putText(img=visual_response,
+    #            text=text,
+    #            org=(textX, textY),
+    #            fontFace=font,
+    #            fontScale=scale,  # This one scale the image proportionaly to its size (512 is the reference)
+    #            color=color_text,  # Red color
+    #            thickness=thickness)
 
     text = 'COVID-19'
     scale = scale * 0.5
-    thickness = 1
+    thickness = 2
     color_text = (92, 6, 18)
     textsize_covid = cv2.getTextSize(text, font, scale, thickness)[0]
 
