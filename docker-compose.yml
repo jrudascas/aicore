@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  web:
+    image: stella/aicore:${TAG}
+    build: .
+    command: python manage.py runserver ${SERVER}:${PORT}
+    volumes:
+      - .:/code
+    env_file:
+      - .env
+    ports:
+      - "${PORT}:${PORT}"
